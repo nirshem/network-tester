@@ -1,0 +1,3 @@
+[tool.pyre]
+source_directories = ["/home/administrator/Desktop/network_tester"]
+search_path = ["/home/administrator/Desktop/network_tester/venv/lib/python3.13/site-packages"]

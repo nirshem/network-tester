@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# VS Code
+.vscode/
+
+# Project Specific
+srv.log
+.pyre_configuration
+pyre.toml
+.agents/
+.agent/
+_agents/
+_agent/
