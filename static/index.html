@@ -81,6 +81,15 @@
                                 <label for="client-zerocopy">Zero Copy</label>
                                 <input type="checkbox" id="client-zerocopy">
                             </div>
+                            <div class="form-group">
+                                <label for="client-avg-window">Averaging Window</label>
+                                <select id="client-avg-window">
+                                    <option value="all">over time</option>
+                                    <option value="10">10[sec]</option>
+                                    <option value="20">20[sec]</option>
+                                    <option value="30">30[sec]</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="actions">
                             <button id="btn-client-start" class="btn primary">Start Test</button>
@@ -103,6 +112,7 @@
                                 <span class="stat-val tp" id="client-tp-avg">- Mbps</span>
                                 <span class="stat-val lat" id="client-lat-avg">- ms</span>
                                 <span class="stat-val jit" id="client-jit-avg">- ms</span>
+                                <span class="stat-val var" id="client-lat-var">- ms²</span>
                             </div>
                         </div>
                         <div class="chart-container">
@@ -138,6 +148,15 @@
                                 <label for="server-interval">Interval (s)</label>
                                 <input type="number" id="server-interval" value="0.1" step="0.1" min="0.1">
                             </div>
+                            <div class="form-group">
+                                <label for="server-avg-window">Averaging Window</label>
+                                <select id="server-avg-window">
+                                    <option value="all">over time</option>
+                                    <option value="10">10[sec]</option>
+                                    <option value="20">20[sec]</option>
+                                    <option value="30">30[sec]</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="actions">
                             <button id="btn-server-start" class="btn primary">Start Server</button>
@@ -160,6 +179,7 @@
                                 <span class="stat-val tp" id="server-tp-avg">- Mbps</span>
                                 <span class="stat-val lat" id="server-lat-avg">- ms</span>
                                 <span class="stat-val jit" id="server-jit-avg">- ms</span>
+                                <span class="stat-val var" id="server-lat-var">- ms²</span>
                             </div>
                         </div>
                         <div class="chart-container">

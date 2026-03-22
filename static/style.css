@@ -129,6 +129,7 @@ body {
 .stat-val.tp { color: #58a6ff; }
 .stat-val.lat { color: #2ea043; }
 .stat-val.jit { color: #f0883e; }
+.stat-val.var { color: #a371f7; }
 
 .glass-panel h3 {
     font-size: 1rem;

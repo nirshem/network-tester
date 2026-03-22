@@ -201,44 +201,92 @@ async function fetchIP() {
     }
 }
 
-let statsData = {
-    client: { tp: { sum: 0, count: 0 }, lat: { sum: 0, count: 0 }, jit: { sum: 0, count: 0 } },
-    server: { tp: { sum: 0, count: 0 }, lat: { sum: 0, count: 0 }, jit: { sum: 0, count: 0 } }
+let metricsHistory = {
+    client: [],
+    server: []
 };
 
 function updateStats(source, metrics) {
-    const data = statsData[source];
-    if (metrics.throughput !== undefined) {
-        data.tp.sum += metrics.throughput;
-        data.tp.count++;
+    const history = metricsHistory[source];
+    // Add current metric with arrival timestamp
+    history.push({ ...metrics, arrival: Date.now() });
+
+    // Auto-cleanup history older than 60s for performance
+    if (history.length > 500) {
+        const cleanupLimit = Date.now() - 60000;
+        while (history.length > 100 && history[0].arrival < cleanupLimit) {
+            history.shift();
+        }
     }
-    if (metrics.latency !== undefined) {
-        data.lat.sum += metrics.latency;
-        data.lat.count++;
+
+    const windowVal = document.getElementById(`${source}-avg-window`).value;
+    let filtered;
+    if (windowVal === 'all') {
+        filtered = history;
+    } else {
+        const seconds = parseInt(windowVal);
+        const limit = Date.now() - (seconds * 1000);
+        filtered = history.filter(m => m.arrival >= limit);
     }
-    if (metrics.jitter !== undefined) {
-        data.jit.sum += metrics.jitter;
-        data.jit.count++;
-    }
+
+    if (filtered.length === 0) return;
+
+    let tpSum = 0, latSum = 0, jitSum = 0, latSqSum = 0;
+    let tpCount = 0, latCount = 0, jitCount = 0;
+
+    filtered.forEach(m => {
+        if (m.throughput !== undefined) { tpSum += m.throughput; tpCount++; }
+        if (m.latency !== undefined) { 
+            latSum += m.latency; 
+            latSqSum += (m.latency * m.latency); 
+            latCount++; 
+        }
+        if (m.jitter !== undefined) { jitSum += m.jitter; jitCount++; }
+    });
     
     const tpEl = document.getElementById(`${source}-tp-avg`);
     const latEl = document.getElementById(`${source}-lat-avg`);
     const jitEl = document.getElementById(`${source}-jit-avg`);
+    const varEl = document.getElementById(`${source}-lat-var`);
 
-    if (tpEl && data.tp.count > 0) tpEl.textContent = (data.tp.sum / data.tp.count).toFixed(2) + ' Mbps';
-    if (latEl && data.lat.count > 0) latEl.textContent = (data.lat.sum / data.lat.count).toFixed(2) + ' ms';
-    if (jitEl && data.jit.count > 0) jitEl.textContent = (data.jit.sum / data.jit.count).toFixed(2) + ' ms';
+    if (tpEl && tpCount > 0) tpEl.textContent = (tpSum / tpCount).toFixed(2) + ' Mbps';
+    if (latEl && latCount > 0) {
+        const avg = latSum / latCount;
+        latEl.textContent = avg.toFixed(2) + ' ms';
+        if (varEl) {
+            const variance = (latSqSum / latCount) - (avg * avg);
+            varEl.textContent = Math.max(0, variance).toFixed(2) + ' ms²';
+        }
+    }
+    if (jitEl && jitCount > 0) jitEl.textContent = (jitSum / jitCount).toFixed(2) + ' ms';
 }
 
 function resetStats(source) {
-    statsData[source] = { tp: { sum: 0, count: 0 }, lat: { sum: 0, count: 0 }, jit: { sum: 0, count: 0 } };
+    metricsHistory[source] = [];
     const tpEl = document.getElementById(`${source}-tp-avg`);
     const latEl = document.getElementById(`${source}-lat-avg`);
     const jitEl = document.getElementById(`${source}-jit-avg`);
+    const varEl = document.getElementById(`${source}-lat-var`);
     if (tpEl) tpEl.textContent = '- Mbps';
     if (latEl) latEl.textContent = '- ms';
     if (jitEl) jitEl.textContent = '- ms';
+    if (varEl) varEl.textContent = '- ms²';
 }
+
+// Immediate update when window selection changes
+['client', 'server'].forEach(source => {
+    const el = document.getElementById(`${source}-avg-window`);
+    if (el) {
+        el.addEventListener('change', () => {
+            const history = metricsHistory[source];
+            if (history.length > 0) {
+                // Remove the last item we're about to "re-add" via updateStats
+                const last = history.pop();
+                updateStats(source, last);
+            }
+        });
+    }
+});
 
 fetchIP();
 setInterval(fetchIP, 30000); // Update every 30 seconds
