@@ -7,7 +7,9 @@
     <title>Network Performance Tester</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="/static/style.css?v=1.1">
+    <link href="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack-all.js"></script>
+    <link rel="stylesheet" href="/static/style.css?v=1.2">
 </head>
 
 <body>
@@ -21,124 +23,140 @@
             </div>
         </header>
 
-        <div class="zones-container">
-            <!-- Upstream Zone (Client) -->
-            <section class="zone upstream-zone">
-                <div class="zone-header">
-                    <h2>Client Side (Upstream)</h2>
-                    <div class="status-indicator client-status" id="client-status-dot"></div>
+        <div class="grid-stack dashboard-container">
+            <!-- Client Widgets -->
+            <div class="grid-stack-item" gs-x="0" gs-y="0" gs-w="6" gs-h="6" gs-id="client-terminal">
+                <div class="grid-stack-item-content">
+                    <section class="widget glass-panel">
+                        <div class="widget-header">
+                            <h3>Client Terminal</h3>
+                            <div class="status-indicator client-status" id="client-status-dot"></div>
+                        </div>
+                        <div id="client-terminal" class="terminal monospace"></div>
+                    </section>
                 </div>
+            </div>
 
-                <div class="terminal-panel glass-panel">
-                    <h3>Client Terminal</h3>
-                    <div id="client-terminal" class="terminal monospace"></div>
+            <div class="grid-stack-item" gs-x="6" gs-y="0" gs-w="3" gs-h="6" gs-id="client-config">
+                <div class="grid-stack-item-content">
+                    <section class="widget glass-panel">
+                        <h3>Client Configuration</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="client-host">Target Wireless IP</label>
+                                <input type="text" id="client-host" value="">
+                            </div>
+                            <div class="form-group">
+                                <label for="client-port">Target Port</label>
+                                <input type="number" id="client-port" value="5201">
+                            </div>
+                            <div class="form-group">
+                                <label for="client-protocol">Protocol</label>
+                                <select id="client-protocol">
+                                    <option value="udp">UDP</option>
+                                    <option value="tcp">TCP</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="client-bandwidth">Bandwidth</label>
+                                <input type="text" id="client-bandwidth" value="10M" placeholder="e.g. 10M, 1G">
+                            </div>
+                            <div class="form-group">
+                                <label for="client-duration">Duration (s)</label>
+                                <input type="number" id="client-duration" value="300" step="0.1" min="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label for="client-interval">Interval (s)</label>
+                                <input type="number" id="client-interval" value="0.1" step="0.1" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="client-parallel">Parallel Streams</label>
+                                <input type="number" id="client-parallel" value="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="client-length">Packet Length (bytes)</label>
+                                <input type="number" id="client-length" value="1470">
+                            </div>
+                            <div class="form-group checkbox-group">
+                                <label for="client-zerocopy">Zero Copy</label>
+                                <input type="checkbox" id="client-zerocopy">
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button id="btn-client-start" class="btn primary">Start Test</button>
+                            <button id="btn-client-stop" class="btn danger" disabled>Stop Test</button>
+                        </div>
+                        <div class="command-box-container">
+                            <label>Running command:</label>
+                            <div id="client-command" class="command-box monospace">No command running</div>
+                        </div>
+                    </section>
                 </div>
+            </div>
 
-                <div class="config-panel glass-panel">
-                    <h3>Client Configuration</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="client-host">Target Host/IP</label>
-                            <input type="text" id="client-host" value="10.100.102.14">
+            <div class="grid-stack-item" gs-x="9" gs-y="0" gs-w="3" gs-h="6" gs-id="client-graph">
+                <div class="grid-stack-item-content">
+                    <section class="widget glass-panel">
+                        <h3>Client Metrics</h3>
+                        <div class="chart-container">
+                            <canvas id="clientChart"></canvas>
                         </div>
-                        <div class="form-group">
-                            <label for="client-port">Target Port</label>
-                            <input type="number" id="client-port" value="5201">
-                        </div>
-                        <div class="form-group">
-                            <label for="client-protocol">Protocol</label>
-                            <select id="client-protocol">
-                                <option value="udp">UDP</option>
-                                <option value="tcp">TCP</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="client-bandwidth">Bandwidth</label>
-                            <input type="text" id="client-bandwidth" value="10M" placeholder="e.g. 10M, 1G">
-                        </div>
-                        <div class="form-group">
-                            <label for="client-duration">Duration (s)</label>
-                            <input type="number" id="client-duration" value="30" step="0.1" min="0.1">
-                        </div>
-                        <div class="form-group">
-                            <label for="client-interval">Interval (s)</label>
-                            <input type="number" id="client-interval" value="0.1" step="0.1" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="client-parallel">Parallel Streams</label>
-                            <input type="number" id="client-parallel" value="1">
-                        </div>
-                        <div class="form-group">
-                            <label for="client-length">Packet Length (bytes)</label>
-                            <input type="number" id="client-length" value="1470">
-                        </div>
-                        <div class="form-group checkbox-group">
-                            <label for="client-zerocopy">Zero Copy</label>
-                            <input type="checkbox" id="client-zerocopy">
-                        </div>
-                    </div>
-                    <div class="actions">
-                        <button id="btn-client-start" class="btn primary">Start Test</button>
-                        <button id="btn-client-stop" class="btn danger" disabled>Stop Test</button>
-                    </div>
-                    <div class="command-box-container">
-                        <label>Running command:</label>
-                        <div id="client-command" class="command-box monospace">No command running</div>
-                    </div>
+                    </section>
                 </div>
+            </div>
 
-                <div class="graph-panel glass-panel">
-                    <h3>Client Metrics</h3>
-                    <div class="chart-container">
-                        <canvas id="clientChart"></canvas>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Downstream Zone (Server) -->
-            <section class="zone downstream-zone">
-                <div class="zone-header">
-                    <h2>Server Side (Downstream)</h2>
-                    <div class="status-indicator server-status" id="server-status-dot"></div>
-                </div>
-
-                <div class="terminal-panel glass-panel">
-                    <h3>Server Terminal</h3>
-                    <div id="server-terminal" class="terminal monospace"></div>
-                </div>
-
-                <div class="config-panel glass-panel">
-                    <h3>Server Configuration</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="server-port">Listen Port</label>
-                            <input type="number" id="server-port" value="5202">
+            <!-- Server Widgets -->
+            <div class="grid-stack-item" gs-x="6" gs-y="6" gs-w="6" gs-h="6" gs-id="server-terminal">
+                <div class="grid-stack-item-content">
+                    <section class="widget glass-panel">
+                        <div class="widget-header">
+                            <h3>Server Terminal</h3>
+                            <div class="status-indicator server-status" id="server-status-dot"></div>
                         </div>
-                        <div class="form-group">
-                            <label for="server-interval">Interval (s)</label>
-                            <input type="number" id="server-interval" value="0.1" step="0.1" min="0.1">
-                        </div>
-                    </div>
-                    <div class="actions">
-                        <button id="btn-server-start" class="btn primary">Start Server</button>
-                        <button id="btn-server-stop" class="btn danger" disabled>Stop Server</button>
-                    </div>
-                    <div class="command-box-container">
-                        <label>Running command:</label>
-                        <div id="server-command" class="command-box monospace">No command running</div>
-                    </div>
+                        <div id="server-terminal" class="terminal monospace"></div>
+                    </section>
                 </div>
+            </div>
 
-                <div class="graph-panel glass-panel">
-                    <h3>Server Metrics</h3>
-                    <div class="chart-container">
-                        <canvas id="serverChart"></canvas>
-                    </div>
+            <div class="grid-stack-item" gs-x="0" gs-y="6" gs-w="3" gs-h="6" gs-id="server-config">
+                <div class="grid-stack-item-content">
+                    <section class="widget glass-panel">
+                        <h3>Server Configuration</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="server-port">Listen Port</label>
+                                <input type="number" id="server-port" value="5201">
+                            </div>
+                            <div class="form-group">
+                                <label for="server-interval">Interval (s)</label>
+                                <input type="number" id="server-interval" value="0.1" step="0.1" min="0.1">
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button id="btn-server-start" class="btn primary">Start Server</button>
+                            <button id="btn-server-stop" class="btn danger" disabled>Stop Server</button>
+                        </div>
+                        <div class="command-box-container">
+                            <label>Running command:</label>
+                            <div id="server-command" class="command-box monospace">No command running</div>
+                        </div>
+                    </section>
                 </div>
-            </section>
+            </div>
+
+            <div class="grid-stack-item" gs-x="3" gs-y="6" gs-w="3" gs-h="6" gs-id="server-graph">
+                <div class="grid-stack-item-content">
+                    <section class="widget glass-panel">
+                        <h3>Server Metrics</h3>
+                        <div class="chart-container">
+                            <canvas id="serverChart"></canvas>
+                        </div>
+                    </section>
+                </div>
+            </div>
         </div>
     </div>
-    <script src="/static/app.js"></script>
+    <script src="/static/app.js?v=1.1"></script>
 </body>
 
 </html>

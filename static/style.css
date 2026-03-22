@@ -60,67 +60,29 @@ body {
     text-align: left;
 }
 
-.zones-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
+.dashboard-container {
+    margin-top: 1rem;
 }
 
-@media (max-width: 1024px) {
-    .zones-container {
-        grid-template-columns: 1fr;
-    }
+.grid-stack-item-content {
+    background: transparent !important;
 }
 
-.upstream-zone {
-    grid-template-areas: 
-        "header header"
-        "terminal config"
-        "terminal graph";
-    grid-template-columns: 1fr 1.2fr;
-}
-
-.downstream-zone {
-    grid-template-areas: 
-        "header header"
-        "config terminal"
-        "graph terminal";
-    grid-template-columns: 1.2fr 1fr;
-}
-
-.zone {
-    display: grid;
-    gap: 1rem;
+.widget {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 0.75rem;
     animation: fadeInUp 0.8s ease;
+    overflow: hidden;
 }
 
-.zone-header {
-    grid-area: header;
+.widget-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding-bottom: 0.25rem;
     border-bottom: 2px solid var(--glass-border);
-}
-
-.zone-header h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.status-indicator {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background-color: var(--text-secondary);
-    box-shadow: 0 0 8px rgba(0,0,0,0.5);
-    transition: all 0.3s ease;
-}
-
-.status-indicator.active {
-    background-color: var(--accent-green);
-    box-shadow: 0 0 12px var(--accent-green);
-    animation: pulse 2s infinite;
 }
 
 .glass-panel {
@@ -130,12 +92,15 @@ body {
     border: 1px solid var(--glass-border);
     border-radius: 12px;
     padding: 1rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: box-shadow 0.2s ease;
 }
 
 .glass-panel:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.config-panel {
+    overflow-y: auto;
 }
 
 .config-panel {
@@ -151,9 +116,11 @@ body {
 }
 
 .glass-panel h3 {
-    font-size: 1.1rem;
-    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
     color: var(--text-primary);
+    cursor: move;
 }
 
 .form-group {
@@ -296,7 +263,8 @@ input:focus, select:focus {
 
 .chart-container {
     position: relative;
-    height: 220px;
+    flex: 1;
+    min-height: 0;
     width: 100%;
 }
 
@@ -304,7 +272,8 @@ input:focus, select:focus {
     background: var(--terminal-bg);
     border-radius: 6px;
     padding: 0.8rem;
-    height: 480px; /* Spans across config and graph height approx */
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     font-family: var(--font-mono);
     font-size: 0.8rem;

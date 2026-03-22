@@ -1,6 +1,55 @@
 Chart.defaults.color = '#8b949e';
 Chart.defaults.font.family = "'Inter', sans-serif";
 
+const grid = GridStack.init({
+    cellHeight: 60,
+    margin: 15,
+    animate: true,
+    draggable: { handle: 'h3' }
+});
+
+function saveLayout() {
+    const layout = {};
+    grid.getGridItems().forEach(el => {
+        const node = el.gridstackNode;
+        if (node.id) {
+            layout[node.id] = { x: node.x, y: node.y, w: node.w, h: node.h };
+        }
+    });
+    localStorage.setItem('network-tester-layout', JSON.stringify(layout));
+}
+
+function loadLayout() {
+    const data = localStorage.getItem('network-tester-layout');
+    if (!data) return;
+    try {
+        const layout = JSON.parse(data);
+        grid.batchUpdate();
+        grid.getGridItems().forEach(el => {
+            const node = el.gridstackNode;
+            const saved = layout[node.id];
+            if (saved) {
+                grid.update(el, { x: saved.x, y: saved.y, w: saved.w, h: saved.h });
+            }
+        });
+        grid.commit();
+    } catch (e) {
+        console.error('Failed to load layout', e);
+    }
+}
+
+// Apply saved layout
+loadLayout();
+
+grid.on('resizestop', () => {
+    saveLayout();
+    serverChart.resize();
+    clientChart.resize();
+});
+
+grid.on('dragstop', saveLayout);
+grid.on('change', saveLayout);
+
 function createChart(canvasId, title) {
     const ctx = document.getElementById(canvasId).getContext('2d');
     return new Chart(ctx, {
@@ -15,7 +64,9 @@ function createChart(canvasId, title) {
                     backgroundColor: 'rgba(88, 166, 255, 0.1)',
                     yAxisID: 'y',
                     tension: 0.4,
-                    fill: true
+                    fill: true,
+                    borderWidth: 3,
+                    pointRadius: 2
                 },
                 {
                     label: 'Latency (ms)',
@@ -24,7 +75,9 @@ function createChart(canvasId, title) {
                     backgroundColor: 'transparent',
                     yAxisID: 'y1',
                     tension: 0.4,
-                    borderDash: [5, 5]
+                    borderDash: [5, 5],
+                    borderWidth: 3,
+                    pointRadius: 3
                 },
                 {
                     label: 'Jitter (ms)',
@@ -32,7 +85,9 @@ function createChart(canvasId, title) {
                     borderColor: '#f0883e',
                     backgroundColor: 'transparent',
                     yAxisID: 'y1',
-                    tension: 0.4
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 2
                 }
             ]
         },
@@ -58,8 +113,8 @@ function createChart(canvasId, title) {
                     position: 'left',
                     title: { display: true, text: 'Throughput (Mbps)' },
                     grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                    min: 0,
-                    max: 10
+                    suggestedMin: 0,
+                    suggestedMax: 10
                 },
                 y1: {
                     type: 'linear',
@@ -67,7 +122,8 @@ function createChart(canvasId, title) {
                     position: 'right',
                     title: { display: true, text: 'Time (ms)' },
                     grid: { drawOnChartArea: false },
-                    min: 0
+                    min: 0,
+                    max: 100
                 }
             }
         }
@@ -121,13 +177,25 @@ function connectWebsocket() {
 
 connectWebsocket();
 
+let firstIPLoaded = false;
 async function fetchIP() {
     try {
         const response = await fetch('/api/ip');
         const data = await response.json();
-        document.getElementById('wlan-ip').textContent = data.ip;
+        const display = document.getElementById('wlan-ip');
+        if (display) display.textContent = data.ip;
+        
+        // Pre-fill target host if it's the first load or if the field is empty
+        const hostInput = document.getElementById('client-host');
+        if (hostInput && data.ip !== 'Not found') {
+            if (!firstIPLoaded || !hostInput.value) {
+                hostInput.value = data.ip;
+                firstIPLoaded = true;
+            }
+        }
     } catch (e) {
-        document.getElementById('wlan-ip').textContent = 'Error';
+        const display = document.getElementById('wlan-ip');
+        if (display) display.textContent = 'Error';
     }
 }
 

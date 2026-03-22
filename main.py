@@ -21,25 +21,25 @@ processes: dict[str, Any] = {
 
 async def cleanup_processes():
     # Stop any running processes managed by this app
-    for p_name, p in processes.items():
+    for p_name, p in list(processes.items()):
         if p and p.returncode is None:
             try:
                 os.killpg(os.getpgid(p.pid), signal.SIGKILL)
             except:
                 try:
-                    p.terminate()
+                    p.kill()
                 except:
                     pass
+            processes[p_name] = None
     
-    # Stop any external iperf3 and ping processes
+    # Global cleanup for any orphaned testers
     try:
         subprocess.run(["pkill", "-9", "-f", "iperf3"], capture_output=True)
-        subprocess.run(["pkill", "-9", "-f", "ping.*127.0.0.1"], capture_output=True)
+        subprocess.run(["pkill", "-9", "-f", "ping"], capture_output=True)
     except Exception:
         pass
     
-    # Small delay for the OS to release resources
-    await asyncio.sleep(2.0)
+    await asyncio.sleep(0.5)
 
 @asynccontextmanager
 async def lifespan(fastapi_app: FastAPI):
@@ -95,17 +95,22 @@ def parse_iperf_metrics(line):
     if time_match:
         metric_data["time"] = float(time_match.group(2))
 
-    match_tp = re.search(r'(\d+(?:\.\d+)?)\s+(Kbits/sec|Mbits/sec|Gbits/sec)', line)
+    # Parse throughput unit and value (Mbits, Kbits, Gbits, or just bits)
+    match_tp = re.search(r'([\d\.]+)\s+(Kbits|Mbits|Gbits|bits)/sec', line)
     if match_tp:
         val = float(match_tp.group(1))
         unit = match_tp.group(2)
-        if unit == 'Kbits/sec': val /= 1000
-        elif unit == 'Gbits/sec': val *= 1000
+        if unit == 'Kbits': val /= 1000
+        elif unit == 'Gbits': val *= 1000
+        elif unit == 'bits': val /= 1000000
         metric_data["throughput"] = val
+        print(f"DEBUG: Parsed bit rate: {val} Mbps from '{line}'")
 
     match_jitter = re.search(r'(\d+(?:\.\d+)?)\s+ms', line)
     if match_jitter and 'ms' in line and ('/' in line or '%' in line):
-        metric_data["jitter"] = float(match_jitter.group(1))
+        val = float(match_jitter.group(1))
+        metric_data["jitter"] = val
+        print(f"DEBUG: Parsed jitter: {val} ms")
 
     return metric_data
 
@@ -129,21 +134,40 @@ async def read_stream_and_broadcast(stream, source_type, parse_type="iperf", sta
             await manager.broadcast({"source": source_type, "type": "log", "data": decoded_line})
             
             if parse_type == "iperf":
+                if source_type == "server":
+                    # Detect incoming client IP to start a server-side ping for latency
+                    match_conn = re.search(r'Accepted connection from ([\d\.]+), port', decoded_line)
+                    if match_conn:
+                        client_ip = match_conn.group(1)
+                        
+                        # Stop existing server-side ping if any
+                        old_ping = processes.get("server_ping")
+                        if old_ping and old_ping.returncode is None:
+                            try:
+                                os.killpg(os.getpgid(old_ping.pid), signal.SIGKILL)
+                            except:
+                                pass
+                        
+                        # Start a fresh ping from server to client
+                        ping_cmd = f"ping -i 1 -c 1000 {shlex.quote(client_ip)}"
+                        asyncio.create_task(run_process(ping_cmd, "server", "ping"))
+
                 metrics = parse_iperf_metrics(decoded_line)
                 if metrics:
-                    # Send to both charts to ensure full visibility
-                    await manager.broadcast({"source": "server", "type": "metric", "data": metrics})
-                    await manager.broadcast({"source": "client", "type": "metric", "data": metrics})
+                    if "throughput" in metrics:
+                        print(f"DEBUG: Sending throughput {metrics['throughput']} to {source_type} graph")
+                    # Isolated broadcast to prevent graph mixing
+                    await manager.broadcast({"source": source_type, "type": "metric", "data": metrics})
                     
             elif parse_type == "ping":
                 latency = parse_ping_latency(decoded_line)
                 if latency is not None:
                     elapsed = 0
                     if start_time:
-                        elapsed = int(asyncio.get_event_loop().time() - start_time)
-                    # Send to both charts
-                    await manager.broadcast({"source": "server", "type": "metric", "data": {"latency": latency, "time": elapsed}})
-                    await manager.broadcast({"source": "client", "type": "metric", "data": {"latency": latency, "time": elapsed}})
+                        elapsed = round(asyncio.get_event_loop().time() - start_time, 2)
+                    print(f"DEBUG: Parsed latency: {latency} ms at {elapsed}s")
+                    # Isolated broadcast
+                    await manager.broadcast({"source": source_type, "type": "metric", "data": {"latency": latency, "time": elapsed}})
         except asyncio.CancelledError:
             break
         except Exception:
@@ -159,7 +183,9 @@ async def run_process(cmd, source_type, parse_type="iperf"):
         )
         
         if parse_type == "ping":
-            processes["ping"] = process
+            # For server-side pings, we might need a separate storage if multiple exist, 
+            # but for this simple tool one is fine.
+            processes[f"{source_type}_ping"] = process
         else:
             processes[source_type] = process
             
@@ -215,18 +241,15 @@ async def start_server(config: ServerConfig):
 
 @app.post("/api/server/stop")
 async def stop_server():
-    p = processes.get("server")
-    if p and p.returncode is None:
-        try:
-            os.killpg(os.getpgid(p.pid), signal.SIGTERM)
-            # Extra safety: wait a bit and kill if still running
-            await asyncio.sleep(0.5)
-            if p.returncode is None:
+    for key in ["server", "server_ping"]:
+        p = processes.get(key)
+        if p and p.returncode is None:
+            try:
                 os.killpg(os.getpgid(p.pid), signal.SIGKILL)
-        except:
-            pass
-        return {"status": "stopped"}
-    return {"status": "not running"}
+            except:
+                pass
+            processes[key] = None
+    return {"status": "stopped"}
 
 @app.post("/api/client/start")
 async def start_client(config: ClientConfig):
@@ -255,13 +278,14 @@ async def start_client(config: ClientConfig):
 
 @app.post("/api/client/stop")
 async def stop_client():
-    for key in ["client", "ping"]:
+    for key in ["client", "client_ping"]:
         p = processes.get(key)
         if p and p.returncode is None:
             try:
-                os.killpg(os.getpgid(p.pid), signal.SIGTERM)
+                os.killpg(os.getpgid(p.pid), signal.SIGKILL)
             except:
                 pass
+            processes[key] = None
     return {"status": "stopped"}
 
 if __name__ == "__main__":
