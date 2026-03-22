@@ -1,4 +1,4 @@
-# Network Performance Tester
+# P2P IP Network Performance Tester
 
 A modern, real-time web interface for `iperf3` that allows you to monitor network throughput, latency, and jitter from a convenient dashboard.
 
