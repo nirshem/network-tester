@@ -57,7 +57,9 @@ function createChart(canvasId, title) {
                     display: true,
                     position: 'left',
                     title: { display: true, text: 'Throughput (Mbps)' },
-                    grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    min: 0,
+                    max: 10
                 },
                 y1: {
                     type: 'linear',

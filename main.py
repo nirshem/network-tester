@@ -131,7 +131,9 @@ async def read_stream_and_broadcast(stream, source_type, parse_type="iperf", sta
             if parse_type == "iperf":
                 metrics = parse_iperf_metrics(decoded_line)
                 if metrics:
-                    await manager.broadcast({"source": source_type, "type": "metric", "data": metrics})
+                    # Send to both charts to ensure full visibility
+                    await manager.broadcast({"source": "server", "type": "metric", "data": metrics})
+                    await manager.broadcast({"source": "client", "type": "metric", "data": metrics})
                     
             elif parse_type == "ping":
                 latency = parse_ping_latency(decoded_line)
@@ -139,7 +141,9 @@ async def read_stream_and_broadcast(stream, source_type, parse_type="iperf", sta
                     elapsed = 0
                     if start_time:
                         elapsed = int(asyncio.get_event_loop().time() - start_time)
-                    await manager.broadcast({"source": source_type, "type": "metric", "data": {"latency": latency, "time": elapsed}})
+                    # Send to both charts
+                    await manager.broadcast({"source": "server", "type": "metric", "data": {"latency": latency, "time": elapsed}})
+                    await manager.broadcast({"source": "client", "type": "metric", "data": {"latency": latency, "time": elapsed}})
         except asyncio.CancelledError:
             break
         except Exception:

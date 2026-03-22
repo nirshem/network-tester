@@ -30,36 +30,40 @@ body {
 }
 
 .app-container {
-    max-width: 1400px;
+    max-width: 1800px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 1rem 1.5rem;
 }
 
 .app-header {
-    text-align: center;
-    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
     animation: fadeInDown 0.8s ease;
 }
 
 .app-header h1 {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
     font-weight: 700;
     background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 0.5rem;
+    margin-right: 1.5rem;
 }
 
 .app-header p {
     color: var(--text-secondary);
-    font-size: 1.1rem;
+    font-size: 0.95rem;
+    flex-grow: 1;
+    text-align: left;
 }
 
 .zones-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+    gap: 1.5rem;
 }
 
 @media (max-width: 1024px) {
@@ -68,18 +72,34 @@ body {
     }
 }
 
+.upstream-zone {
+    grid-template-areas: 
+        "header header"
+        "terminal config"
+        "terminal graph";
+    grid-template-columns: 1fr 1.2fr;
+}
+
+.downstream-zone {
+    grid-template-areas: 
+        "header header"
+        "config terminal"
+        "graph terminal";
+    grid-template-columns: 1.2fr 1fr;
+}
+
 .zone {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    display: grid;
+    gap: 1rem;
     animation: fadeInUp 0.8s ease;
 }
 
 .zone-header {
+    grid-area: header;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
     border-bottom: 2px solid var(--glass-border);
 }
 
@@ -109,7 +129,7 @@ body {
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
     border-radius: 12px;
-    padding: 1.5rem;
+    padding: 1rem;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -118,9 +138,21 @@ body {
     transform: translateY(-2px);
 }
 
+.config-panel {
+    grid-area: config;
+}
+
+.graph-panel {
+    grid-area: graph;
+}
+
+.terminal-panel {
+    grid-area: terminal;
+}
+
 .glass-panel h3 {
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
     color: var(--text-primary);
 }
 
@@ -130,9 +162,9 @@ body {
 
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
 }
 
 .checkbox-group {
@@ -147,11 +179,10 @@ body {
 }
 
 .ip-widget {
-    margin-top: 1.5rem;
     display: inline-flex;
     align-items: center;
-    gap: 0.8rem;
-    padding: 0.8rem 1.5rem;
+    gap: 0.6rem;
+    padding: 0.5rem 1.2rem;
     border-radius: 50px;
     background: rgba(30, 35, 45, 0.6);
     border: 1px solid rgba(88, 166, 255, 0.3);
@@ -172,9 +203,9 @@ body {
 }
 
 .command-box-container {
-    margin-top: 1.5rem;
+    margin-top: 1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
-    padding-top: 1rem;
+    padding-top: 0.75rem;
 }
 
 .command-box-container label {
@@ -186,9 +217,9 @@ body {
 
 .command-box {
     background: rgba(0, 0, 0, 0.3);
-    padding: 0.8rem 1rem;
+    padding: 0.6rem 0.8rem;
     border-radius: 8px;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: #ffd666;
     overflow-x: auto;
     white-space: nowrap;
@@ -207,10 +238,10 @@ input, select {
     background: rgba(0, 0, 0, 0.5);
     border: 1px solid var(--glass-border);
     color: var(--text-primary);
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 0.75rem;
     border-radius: 6px;
     font-family: inherit;
-    font-size: 1rem;
+    font-size: 0.9rem;
     transition: border-color 0.2s ease;
 }
 
@@ -222,16 +253,16 @@ input:focus, select:focus {
 
 .actions {
     display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
+    gap: 0.75rem;
+    margin-top: 1rem;
 }
 
 .btn {
     flex: 1;
-    padding: 0.75rem 1.5rem;
+    padding: 0.6rem 1rem;
     border: none;
     border-radius: 6px;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -265,19 +296,19 @@ input:focus, select:focus {
 
 .chart-container {
     position: relative;
-    height: 250px;
+    height: 220px;
     width: 100%;
 }
 
 .terminal {
     background: var(--terminal-bg);
     border-radius: 6px;
-    padding: 1rem;
-    height: 300px;
+    padding: 0.8rem;
+    height: 480px; /* Spans across config and graph height approx */
     overflow-y: auto;
     font-family: var(--font-mono);
-    font-size: 0.85rem;
-    line-height: 1.4;
+    font-size: 0.8rem;
+    line-height: 1.3;
     color: var(--terminal-text);
     border: 1px solid rgba(255, 255, 255, 0.05);
     white-space: pre-wrap;

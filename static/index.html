@@ -7,7 +7,7 @@
     <title>Network Performance Tester</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v=1.1">
 </head>
 
 <body>
@@ -22,53 +22,16 @@
         </header>
 
         <div class="zones-container">
-            <!-- Downstream Zone (Server) -->
-            <section class="zone downstream-zone">
-                <div class="zone-header">
-                    <h2>Server Side (Downstream)</h2>
-                    <div class="status-indicator server-status" id="server-status-dot"></div>
-                </div>
-
-                <div class="config-panel glass-panel">
-                    <h3>Server Configuration</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="server-port">Listen Port</label>
-                            <input type="number" id="server-port" value="5202">
-                        </div>
-                        <div class="form-group">
-                            <label for="server-interval">Interval (s)</label>
-                            <input type="number" id="server-interval" value="0.1" step="0.1" min="0.1">
-                        </div>
-                    </div>
-                    <div class="actions">
-                        <button id="btn-server-start" class="btn primary">Start Server</button>
-                        <button id="btn-server-stop" class="btn danger" disabled>Stop Server</button>
-                    </div>
-                    <div class="command-box-container">
-                        <label>Running command:</label>
-                        <div id="server-command" class="command-box monospace">No command running</div>
-                    </div>
-                </div>
-
-                <div class="graph-panel glass-panel">
-                    <h3>Server Metrics</h3>
-                    <div class="chart-container">
-                        <canvas id="serverChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="terminal-panel glass-panel">
-                    <h3>Server Terminal</h3>
-                    <div id="server-terminal" class="terminal monospace"></div>
-                </div>
-            </section>
-
             <!-- Upstream Zone (Client) -->
             <section class="zone upstream-zone">
                 <div class="zone-header">
                     <h2>Client Side (Upstream)</h2>
                     <div class="status-indicator client-status" id="client-status-dot"></div>
+                </div>
+
+                <div class="terminal-panel glass-panel">
+                    <h3>Client Terminal</h3>
+                    <div id="client-terminal" class="terminal monospace"></div>
                 </div>
 
                 <div class="config-panel glass-panel">
@@ -130,10 +93,47 @@
                         <canvas id="clientChart"></canvas>
                     </div>
                 </div>
+            </section>
+
+            <!-- Downstream Zone (Server) -->
+            <section class="zone downstream-zone">
+                <div class="zone-header">
+                    <h2>Server Side (Downstream)</h2>
+                    <div class="status-indicator server-status" id="server-status-dot"></div>
+                </div>
 
                 <div class="terminal-panel glass-panel">
-                    <h3>Client Terminal</h3>
-                    <div id="client-terminal" class="terminal monospace"></div>
+                    <h3>Server Terminal</h3>
+                    <div id="server-terminal" class="terminal monospace"></div>
+                </div>
+
+                <div class="config-panel glass-panel">
+                    <h3>Server Configuration</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="server-port">Listen Port</label>
+                            <input type="number" id="server-port" value="5202">
+                        </div>
+                        <div class="form-group">
+                            <label for="server-interval">Interval (s)</label>
+                            <input type="number" id="server-interval" value="0.1" step="0.1" min="0.1">
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button id="btn-server-start" class="btn primary">Start Server</button>
+                        <button id="btn-server-stop" class="btn danger" disabled>Stop Server</button>
+                    </div>
+                    <div class="command-box-container">
+                        <label>Running command:</label>
+                        <div id="server-command" class="command-box monospace">No command running</div>
+                    </div>
+                </div>
+
+                <div class="graph-panel glass-panel">
+                    <h3>Server Metrics</h3>
+                    <div class="chart-container">
+                        <canvas id="serverChart"></canvas>
+                    </div>
                 </div>
             </section>
         </div>
