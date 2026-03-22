@@ -152,7 +152,9 @@ function connectWebsocket() {
                 terminal.scrollTop = terminal.scrollHeight;
             }
         } else if (msg.type === 'metric') {
-            updateChart(msg.source === 'server' ? serverChart : clientChart, msg.data);
+            const chart = msg.source === 'server' ? serverChart : clientChart;
+            updateChart(chart, msg.data);
+            updateStats(msg.source, msg.data);
         } else if (msg.type === 'status') {
             const statusDot = document.getElementById(`${msg.source}-status-dot`);
             const btnStart = document.getElementById(`btn-${msg.source}-start`);
@@ -197,6 +199,45 @@ async function fetchIP() {
         const display = document.getElementById('wlan-ip');
         if (display) display.textContent = 'Error';
     }
+}
+
+let statsData = {
+    client: { tp: { sum: 0, count: 0 }, lat: { sum: 0, count: 0 }, jit: { sum: 0, count: 0 } },
+    server: { tp: { sum: 0, count: 0 }, lat: { sum: 0, count: 0 }, jit: { sum: 0, count: 0 } }
+};
+
+function updateStats(source, metrics) {
+    const data = statsData[source];
+    if (metrics.throughput !== undefined) {
+        data.tp.sum += metrics.throughput;
+        data.tp.count++;
+    }
+    if (metrics.latency !== undefined) {
+        data.lat.sum += metrics.latency;
+        data.lat.count++;
+    }
+    if (metrics.jitter !== undefined) {
+        data.jit.sum += metrics.jitter;
+        data.jit.count++;
+    }
+    
+    const tpEl = document.getElementById(`${source}-tp-avg`);
+    const latEl = document.getElementById(`${source}-lat-avg`);
+    const jitEl = document.getElementById(`${source}-jit-avg`);
+
+    if (tpEl && data.tp.count > 0) tpEl.textContent = (data.tp.sum / data.tp.count).toFixed(2) + ' Mbps';
+    if (latEl && data.lat.count > 0) latEl.textContent = (data.lat.sum / data.lat.count).toFixed(2) + ' ms';
+    if (jitEl && data.jit.count > 0) jitEl.textContent = (data.jit.sum / data.jit.count).toFixed(2) + ' ms';
+}
+
+function resetStats(source) {
+    statsData[source] = { tp: { sum: 0, count: 0 }, lat: { sum: 0, count: 0 }, jit: { sum: 0, count: 0 } };
+    const tpEl = document.getElementById(`${source}-tp-avg`);
+    const latEl = document.getElementById(`${source}-lat-avg`);
+    const jitEl = document.getElementById(`${source}-jit-avg`);
+    if (tpEl) tpEl.textContent = '- Mbps';
+    if (latEl) latEl.textContent = '- ms';
+    if (jitEl) jitEl.textContent = '- ms';
 }
 
 fetchIP();
@@ -253,6 +294,7 @@ document.getElementById('btn-server-start').addEventListener('click', async () =
     const interval = parseFloat(document.getElementById('server-interval').value);
     clearTerminal('server');
     clearChart(serverChart);
+    resetStats('server');
     lastTimeServer = -1;
     
     const response = await fetch('/api/server/start', {
@@ -284,6 +326,7 @@ document.getElementById('btn-client-start').addEventListener('click', async () =
     };
     clearTerminal('client');
     clearChart(clientChart);
+    resetStats('client');
     lastTimeClient = -1;
     
     const response = await fetch('/api/client/start', {

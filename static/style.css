@@ -107,13 +107,28 @@ body {
     grid-area: config;
 }
 
-.graph-panel {
-    grid-area: graph;
+.widget-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: move;
+    margin: 0;
 }
 
-.terminal-panel {
-    grid-area: terminal;
+.widget-stats {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
 }
+
+.stat-val {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.stat-val.tp { color: #58a6ff; }
+.stat-val.lat { color: #2ea043; }
+.stat-val.jit { color: #f0883e; }
 
 .glass-panel h3 {
     font-size: 1rem;

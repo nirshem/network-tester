@@ -97,7 +97,14 @@
             <div class="grid-stack-item" gs-x="9" gs-y="0" gs-w="3" gs-h="6" gs-id="client-graph">
                 <div class="grid-stack-item-content">
                     <section class="widget glass-panel">
-                        <h3>Client Metrics</h3>
+                        <div class="widget-header">
+                            <h3>Client Metrics</h3>
+                            <div class="widget-stats" id="client-stats">
+                                <span class="stat-val tp" id="client-tp-avg">- Mbps</span>
+                                <span class="stat-val lat" id="client-lat-avg">- ms</span>
+                                <span class="stat-val jit" id="client-jit-avg">- ms</span>
+                            </div>
+                        </div>
                         <div class="chart-container">
                             <canvas id="clientChart"></canvas>
                         </div>
@@ -147,7 +154,14 @@
             <div class="grid-stack-item" gs-x="3" gs-y="6" gs-w="3" gs-h="6" gs-id="server-graph">
                 <div class="grid-stack-item-content">
                     <section class="widget glass-panel">
-                        <h3>Server Metrics</h3>
+                        <div class="widget-header">
+                            <h3>Server Metrics</h3>
+                            <div class="widget-stats" id="server-stats">
+                                <span class="stat-val tp" id="server-tp-avg">- Mbps</span>
+                                <span class="stat-val lat" id="server-lat-avg">- ms</span>
+                                <span class="stat-val jit" id="server-jit-avg">- ms</span>
+                            </div>
+                        </div>
                         <div class="chart-container">
                             <canvas id="serverChart"></canvas>
                         </div>
