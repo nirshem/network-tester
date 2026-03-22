@@ -16,7 +16,10 @@
     <div class="app-container">
         <header class="app-header">
             <h1>P2P IP Network Performance Tester</h1>
-            <p>Real-time iperf3 bandwidth, latency, and jitter monitoring</p>
+            <div class="subtitle-group">
+                <p>Real-time iperf3 bandwidth, latency, and jitter monitoring</p>
+                <span id="system-clock" class="system-clock"></span>
+            </div>
             <div id="ip-display" class="glass-panel ip-widget">
                 <span class="label">Wireless IP:</span>
                 <span id="wlan-ip" class="value">Loading...</span>
@@ -113,6 +116,7 @@
                                 <span class="stat-val lat" id="client-lat-avg">- ms</span>
                                 <span class="stat-val jit" id="client-jit-avg">- ms</span>
                                 <span class="stat-val var" id="client-lat-var">- ms²</span>
+                                <span class="stat-val drop" id="client-drop-avg">- Drops</span>
                             </div>
                         </div>
                         <div class="chart-container">
@@ -180,6 +184,7 @@
                                 <span class="stat-val lat" id="server-lat-avg">- ms</span>
                                 <span class="stat-val jit" id="server-jit-avg">- ms</span>
                                 <span class="stat-val var" id="server-lat-var">- ms²</span>
+                                <span class="stat-val drop" id="server-drop-avg">- Drops</span>
                             </div>
                         </div>
                         <div class="chart-container">

@@ -231,8 +231,8 @@ function updateStats(source, metrics) {
 
     if (filtered.length === 0) return;
 
-    let tpSum = 0, latSum = 0, jitSum = 0, latSqSum = 0;
-    let tpCount = 0, latCount = 0, jitCount = 0;
+    let tpSum = 0, latSum = 0, jitSum = 0, dropSum = 0, totalPktSum = 0, latSqSum = 0;
+    let tpCount = 0, latCount = 0, jitCount = 0, dropCount = 0;
 
     filtered.forEach(m => {
         if (m.throughput !== undefined) { tpSum += m.throughput; tpCount++; }
@@ -242,11 +242,14 @@ function updateStats(source, metrics) {
             latCount++; 
         }
         if (m.jitter !== undefined) { jitSum += m.jitter; jitCount++; }
+        if (m.lost_packets !== undefined) { dropSum += m.lost_packets; dropCount++; }
+        if (m.total_packets !== undefined) { totalPktSum += m.total_packets; }
     });
     
     const tpEl = document.getElementById(`${source}-tp-avg`);
     const latEl = document.getElementById(`${source}-lat-avg`);
     const jitEl = document.getElementById(`${source}-jit-avg`);
+    const dropEl = document.getElementById(`${source}-drop-avg`);
     const varEl = document.getElementById(`${source}-lat-var`);
 
     if (tpEl && tpCount > 0) tpEl.textContent = (tpSum / tpCount).toFixed(2) + ' Mbps';
@@ -259,6 +262,14 @@ function updateStats(source, metrics) {
         }
     }
     if (jitEl && jitCount > 0) jitEl.textContent = (jitSum / jitCount).toFixed(2) + ' ms';
+    if (dropEl && dropCount > 0) {
+        if (totalPktSum > 0) {
+            const pct = (dropSum / totalPktSum) * 100;
+            dropEl.textContent = `${dropSum} Drops (${pct.toFixed(2)}%)`;
+        } else {
+            dropEl.textContent = dropSum + ' Drops';
+        }
+    }
 }
 
 function resetStats(source) {
@@ -266,10 +277,12 @@ function resetStats(source) {
     const tpEl = document.getElementById(`${source}-tp-avg`);
     const latEl = document.getElementById(`${source}-lat-avg`);
     const jitEl = document.getElementById(`${source}-jit-avg`);
+    const dropEl = document.getElementById(`${source}-drop-avg`);
     const varEl = document.getElementById(`${source}-lat-var`);
     if (tpEl) tpEl.textContent = '- Mbps';
     if (latEl) latEl.textContent = '- ms';
     if (jitEl) jitEl.textContent = '- ms';
+    if (dropEl) dropEl.textContent = '- Drops';
     if (varEl) varEl.textContent = '- ms²';
 }
 
@@ -287,6 +300,20 @@ function resetStats(source) {
         });
     }
 });
+
+function updateClock() {
+    const now = new Date();
+    const d = String(now.getDate()).padStart(2, '0');
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const y = String(now.getFullYear()).slice(-2);
+    const h = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    const el = document.getElementById('system-clock');
+    if (el) el.textContent = `${d}/${m}/${y} ${h}:${min}:${s}`;
+}
+updateClock();
+setInterval(updateClock, 1000);
 
 fetchIP();
 setInterval(fetchIP, 30000); // Update every 30 seconds

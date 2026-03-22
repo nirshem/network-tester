@@ -104,13 +104,24 @@ def parse_iperf_metrics(line):
         elif unit == 'Gbits': val *= 1000
         elif unit == 'bits': val /= 1000000
         metric_data["throughput"] = val
-        print(f"DEBUG: Parsed bit rate: {val} Mbps from '{line}'")
 
-    match_jitter = re.search(r'(\d+(?:\.\d+)?)\s+ms', line)
-    if match_jitter and 'ms' in line and ('/' in line or '%' in line):
-        val = float(match_jitter.group(1))
-        metric_data["jitter"] = val
-        print(f"DEBUG: Parsed jitter: {val} ms")
+    # Parse UDP metrics: Jitter and Loss (e.g., "0.021 ms  0/852 (0%)")
+    match_udp = re.search(r'(\d+(?:\.\d+)?)\s+ms\s+(\d+)/(\d+)', line)
+    if match_udp:
+        metric_data["jitter"] = float(match_udp.group(1))
+        metric_data["lost_packets"] = int(match_udp.group(2))
+        metric_data["total_packets"] = int(match_udp.group(3))
+    else:
+        # Parse TCP Retransmits (e.g., "101 Mbits/sec    0    404 KBytes")
+        # Usually Retr is the first integer after the bandwidth
+        match_tcp_retr = re.search(r'(?:Kbits|Mbits|Gbits|bits)/sec\s+(\d+)\s+', line)
+        if match_tcp_retr:
+            metric_data["lost_packets"] = int(match_tcp_retr.group(1))
+        else:
+            # Fallback for jitter if loss is not present but it's a UDP report line
+            match_jitter = re.search(r'(\d+(?:\.\d+)?)\s+ms', line)
+            if match_jitter and ('/' in line or '%' in line):
+                metric_data["jitter"] = float(match_jitter.group(1))
 
     return metric_data
 
