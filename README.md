@@ -54,3 +54,6 @@ A modern, real-time web interface for `iperf3` that allows you to monitor networ
 ## License
 
 MIT
+
+<img width="1886" height="1048" alt="Screenshot from 2026-04-15 09-38-24" src="https://github.com/user-attachments/assets/a6e5ba0d-97c9-4136-91ea-7509911bf1d4" />
+
